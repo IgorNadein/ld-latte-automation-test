@@ -10,8 +10,8 @@ const base = Array.from({ length: 9 }, (_, i) => ({
   id: i + 1, name: 'Услуга ' + (i + 1), active: true,
 }));
 
-function execute(kind, services, serviceId = null, isMenuReturn = false) {
-  const ctx = { kind, chatId: 1234, callbackId: kind === 'callback' ? 'cb-1' : null, serviceId, isMenuReturn };
+function execute(kind, services, serviceId = null, isMenuReturn = false, messageId = null) {
+  const ctx = { kind, chatId: 1234, callbackId: kind === 'callback' ? 'cb-1' : null, serviceId, isMenuReturn, messageId };
   const sandbox = {
     $input: { all: () => services.map(s => ({ json: s })) },
     $: name => {
@@ -55,4 +55,9 @@ const backEmpty = execute('callback', noActive, null, true);
 assert.equal(backEmpty.keyboard, null);
 assert.match(backEmpty.text,/нет доступных услуг/);
 console.log('PASS: return to empty catalog');
-console.log('All 11 menu behavior groups passed.');
+const edited = execute('callback', base, 1, false, 321);
+assert.equal(edited.messageId, 321);
+assert.equal(execute('callback', base, null, true, 321).messageId, 321);
+assert.equal(execute('start', base).messageId, null);
+console.log('PASS: callbacks carry original message ID for editMessageText; /start sends a new message');
+console.log('All 12 menu behavior groups passed.');

@@ -6,7 +6,7 @@ type TelegramUpdate = {
   callback_query?: {
     id?: string;
     data?: string;
-    message?: { chat?: { id?: number } };
+    message?: { chat?: { id?: number }; message_id?: number };
   };
 };
 
@@ -68,7 +68,27 @@ async function sendMessage(
 }
 
 
-async function showMenu(token: string, chatId: number) {
+async function upsertInteractiveMessage(
+  token: string,
+  chatId: number,
+  messageId: number | undefined,
+  text: string,
+  buttons?: { text: string; callback_data: string }[][],
+) {
+  if (!messageId) {
+    await sendMessage(token, chatId, text, buttons);
+    return;
+  }
+  // Edit the original Telegram message instead of adding another one to the chat.
+  await telegramApi(token, "editMessageText", {
+    chat_id: chatId,
+    message_id: messageId,
+    text,
+    ...(buttons?.length ? { reply_markup: { inline_keyboard: buttons } } : {}),
+  });
+}
+
+async function showMenu(token: string, chatId: number, messageId?: number) {
   // The database is queried on every /start and every return to menu.
   const services = await sql.unsafe(
     "SELECT id,name FROM public.services WHERE active = true ORDER BY id",
@@ -76,9 +96,10 @@ async function showMenu(token: string, chatId: number) {
   const buttons = services.map((service) => [
     { text: String(service.name), callback_data: "service:" + service.id },
   ]);
-  await sendMessage(
+  await upsertInteractiveMessage(
     token,
     chatId,
+    messageId,
     services.length
       ? "🛍 Меню услуг\n\nВыберите услугу — бот подтвердит выбор.\nСписок обновляется из базы данных."
       : "Сейчас нет доступных услуг. Попробуйте позже.",
@@ -101,13 +122,14 @@ async function processUpdate(token: string, update: TelegramUpdate) {
   }
   if (callback?.id && callback.message?.chat?.id != null) {
     const chatId = callback.message.chat.id;
+    const messageId = callback.message.message_id;
     // Acknowledge the tap promptly; otherwise Telegram keeps displaying a spinner.
     await telegramApi(token, "answerCallbackQuery", {
       callback_query_id: callback.id,
       text: callback.data === "menu" ? "Список обновлён" : "Выбор принят",
     });
     if (callback.data === "menu") {
-      await showMenu(token, chatId);
+      await showMenu(token, chatId, messageId);
       return;
     }
     const serviceId = /^service:(\d{1,18})$/.exec(callback.data || "")?.[1];
@@ -120,7 +142,7 @@ async function processUpdate(token: string, update: TelegramUpdate) {
     const msg = services.length
       ? "✅ Вы выбрали услугу: " + services[0].name + "\n\nУслуга найдена по ID в базе данных. Можно вернуться к списку и выбрать другую."
       : "⚠️ Эта услуга больше недоступна. Меню могло измениться.";
-    await sendMessage(token, chatId, msg, [
+    await upsertInteractiveMessage(token, chatId, messageId, msg, [
       [{ text: "↩️ Вернуться к списку услуг", callback_data: "menu" }],
     ]);
     console.info("Service callback processed; active choice:", services.length > 0);
