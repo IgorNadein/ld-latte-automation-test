@@ -1,0 +1,36 @@
+name: Verify PostgreSQL RLS
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  rls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL CLI
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+      - name: Apply production SQL schema and verify RLS between A and B
+        env:
+          PGURL: postgresql://postgres:testpassword@127.0.0.1:5432/postgres
+        run: |
+          psql "$PGURL" -v ON_ERROR_STOP=1 \
+            -f tests/pg_bootstrap.sql \
+            -f supabase/schema.sql \
+            -f tests/test_rls_postgres.sql
