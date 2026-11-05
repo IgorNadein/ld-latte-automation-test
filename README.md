@@ -91,3 +91,13 @@ SQL data checks: имена вымышленные. Добавление, пер
 - `.github/workflows/ci.yml`: эти проверки запускаются автоматически в GitHub Actions.
 
 **Проверки, которые mock не заменяет:** настоящая авторизация Supabase с подтверждением email, реальная PostgreSQL RLS при запросах с двумя JWT, живой Telegram webhook/n8n, и фактическая доступность боевого HTTPS URL.
+
+## Готовый отчёт по Instagram (для просмотра без GitHub Markdown)
+
+[**Открыть отчёт PDF — LD LATTE Instagram Integration Plan**](docs/LD_LATTE_Instagram_Integration_Plan.pdf) · [SVG-схема архитектуры](docs/instagram-architecture.svg)
+
+В PDF включены схема потока данных, отличие Instagram Login от Facebook Login, роли владельца и технического специалиста, таблица метрик и ограничений, план планового сбора, журналирования и мониторинга, типовые сбои, критерии проверки и вопросы к компании. Данные и токены LD LATTE не использованы. Отчёт можно пересобрать через `python3 scripts/render_architecture.py` и `node scripts/render_instagram_pdf.mjs` (нужны pandoc и headless Chromium).
+
+## Проверка импорта в n8n
+
+Файл `.github/workflows/n8n-import.yml` содержит отдельный запускаемый вручную GitHub Actions job, который устанавливает n8n 2.46.6 и SQLite в изолированной среде, импортирует workflow и повторно экспортирует его для проверки. Это **проверка формата и импортируемости**, не демонстрация Telegram webhook с токеном.

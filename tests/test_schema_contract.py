@@ -10,7 +10,7 @@ def check(pattern, message):
 check(r"create table if not exists public\.automation_requests.*?owner_id uuid not null default auth\.uid\(\)", "database populates owner from Supabase auth.uid")
 check(r"alter table public\.automation_requests enable row level security", "RLS enabled for requests")
 check(r"create policy requests_select_own.*?for select.*?using \(owner_id = \(select auth\.uid\(\)\)\)", "SELECT scoped to owner")
-check(r"create policy requests_insert_own.*?for insert.*?with check \(owner_id = \(select auth\.uid\(\)\)\)", "INSERT restricted to owner")
+check(r"create policy requests_insert_own.*?for insert.*?with check \(owner_id = \(select auth\.uid\(\)\) and status = 'новая'\)", "INSERT restricted to owner and defaults to Новая")
 check(r"create policy requests_update_own.*?for update.*?using \(owner_id = \(select auth\.uid\(\)\)\).*?with check \(owner_id = \(select auth\.uid\(\)\)\)", "UPDATE both USING and WITH CHECK")
 assert "for delete to authenticated" not in sql, "No authenticated DELETE policy should exist"
 print("PASS no DELETE policy")

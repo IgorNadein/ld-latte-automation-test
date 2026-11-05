@@ -15,13 +15,13 @@ create index if not exists idx_automation_requests_owner_created
 create index if not exists idx_automation_requests_owner_status
   on public.automation_requests (owner_id, status);
 alter table public.automation_requests enable row level security;
--- WITH CHECK prevents writing someone else's owner_id, including in UPDATE.
+-- WITH CHECK prevents writing another owner's ID and enforces New status at creation.
 drop policy if exists requests_select_own on public.automation_requests;
 create policy requests_select_own on public.automation_requests
   for select to authenticated using (owner_id = (select auth.uid()));
 drop policy if exists requests_insert_own on public.automation_requests;
 create policy requests_insert_own on public.automation_requests
-  for insert to authenticated with check (owner_id = (select auth.uid()));
+  for insert to authenticated with check (owner_id = (select auth.uid()) and status = 'Новая');
 drop policy if exists requests_update_own on public.automation_requests;
 create policy requests_update_own on public.automation_requests
   for update to authenticated
@@ -59,3 +59,16 @@ insert into public.services(id, name, active) values
 on conflict (id) do update set name=excluded.name,active=excluded.active;
 select setval(pg_get_serial_sequence('public.services','id'),
   greatest((select max(id) from public.services),1));
+
+-- Keep updated_at meaningful for future audit/reporting.
+create or replace function public.set_automation_request_updated_at()
+returns trigger language plpgsql set search_path = '' as $$
+begin
+  new.updated_at := now();
+  return new;
+end;
+$$;
+drop trigger if exists trg_automation_request_updated_at on public.automation_requests;
+create trigger trg_automation_request_updated_at
+  before update on public.automation_requests
+  for each row execute function public.set_automation_request_updated_at();
