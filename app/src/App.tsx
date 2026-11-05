@@ -17,6 +17,24 @@ type FormState = Pick<RequestRow, 'title' | 'description' | 'category' | 'status
 const categories: Category[] = ['Бот', 'Интеграция', 'Отчёт', 'Другое'];
 const statuses: Status[] = ['Новая', 'В работе', 'Завершена'];
 const freshForm = (): FormState => ({ title: '', description: '', category: 'Бот', status: 'Новая' });
+const friendlyError = (e: unknown): string => {
+  const detail = e && typeof e === 'object' && 'message' in e && typeof e.message === 'string'
+    ? e.message
+    : e instanceof Error ? e.message : typeof e === 'string' ? e : '';
+  const message = detail.trim();
+  if ((typeof navigator !== 'undefined' && !navigator.onLine) ||
+      /failed to fetch|fetch failed|networkerror|network request failed|load failed|timeout/i.test(message)) {
+    return 'Не удалось связаться с сервером. Проверьте интернет и попробуйте ещё раз.';
+  }
+  if (/invalid login credentials/i.test(message)) return 'Неверный email или пароль.';
+  if (/email not confirmed/i.test(message)) return 'Подтвердите email по ссылке из письма, затем повторите вход.';
+  if (/rate limit|email rate limit exceeded/i.test(message)) {
+    return 'Превышен лимит запросов. Повторите попытку позднее.';
+  }
+  return message && message !== '[object Object]'
+    ? message
+    : 'Не удалось выполнить операцию. Повторите попытку или обновите страницу.';
+};
 const formatDate = (s: string) => new Intl.DateTimeFormat('ru-RU', {
   day: 'numeric', month: 'short', year: 'numeric'
 }).format(new Date(s));
@@ -50,7 +68,7 @@ function App() {
       setSession(data.session);
       setAuthReady(true);
     }).catch(e => {
-      if (active) { setError(String(e)); setAuthReady(true); }
+      if (active) { setError(friendlyError(e)); setAuthReady(true); }
     });
     const { data: { subscription } } = client.auth.onAuthStateChange((_event, current) => {
       if (active) { setSession(current); setAuthReady(true); }
@@ -69,7 +87,7 @@ function App() {
         .order('created_at', { ascending: false });
       if (e) throw e;
       setRows((data || []) as RequestRow[]);
-    } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
+    } catch (e) { setError(friendlyError(e)); }
     finally { setLoading(false); }
   }, [session?.user.id]);
 
@@ -89,12 +107,12 @@ function App() {
           });
       if (result.error) throw result.error;
       if (authMode === 'signup' && !result.data.session) {
-        setNotice('Аккаунт создан. Подтвердите email по ссылке из письма, затем вернитесь на эту страницу и войдите. Если письмо открыло localhost — подтверждение всё равно могло пройти; вернитесь сюда и попробуйте войти.');
+        setNotice('Аккаунт создан. Подтвердите email по ссылке из письма, затем вернитесь в приложение и войдите.');
       } else {
         setNotice(authMode === 'signup' ? 'Аккаунт создан.' : 'Вход выполнен.');
       }
       setPassword('');
-    } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
+    } catch (e) { setError(friendlyError(e)); }
     finally { setAuthPending(false); }
   }
 
@@ -135,7 +153,7 @@ function App() {
       setEditorOpen(false); setEditingId(null); setDraft(freshForm());
       await refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(friendlyError(e));
     } finally { saveInFlight.current = false; setSaving(false); }
   }
 
