@@ -36,7 +36,7 @@ Chromium дополнительно проверил публичный сайт
 
 ## Независимые GitHub Actions
 
-- ci.yml: TypeScript/Vite build; 7 тестов меню; 8 проверок структуры SQL; 10 браузерных сценариев с mock API.
+- ci.yml: TypeScript/Vite build; 12 групп тестов меню; 8 проверок структуры SQL; 11 браузерных сценариев с mock API.
 - postgres-rls.yml: реальные RLS-политики в PostgreSQL 16 с двумя разными пользователями.
 - n8n-import.yml: реальный n8n 2.46.6, импорт и экспорт workflow.
 - deploy-pages.yml: отдельная публикация с live Supabase, не имитацией данных.

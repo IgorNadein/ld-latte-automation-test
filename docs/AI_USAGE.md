@@ -33,8 +33,8 @@
 ## Фактически пройденные автоматизированные тесты (5 ноября 2026)
 
 1. React/TypeScript: `npm run build` — успешно.
-2. Telegram Code-узел: 7 тестов JavaScript в `tests/test_menu.mjs` — успешно (без живого Telegram).
-3. Web UI: 10 браузерных сценариев Playwright + локальный mock HTTP API — успешно.
+2. Telegram Code-узел: 12 групп проверок JavaScript в `tests/test_menu.mjs` — успешно (без живого Telegram).
+3. Web UI: 11 браузерных сценариев Playwright + локальный mock HTTP API — успешно.
 4. Статическая проверка SQL: 8 требований в `tests/test_schema_contract.py` — успешно.
 
 Скриншоты тестового UI находятся в `docs/screenshots/`. Они не подтверждают работу реальных Supabase Auth, RLS или n8n Telegram Trigger; для этих компонентов требуются подключённые сервисы и отдельные проверки.

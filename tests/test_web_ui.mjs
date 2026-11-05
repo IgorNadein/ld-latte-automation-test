@@ -146,6 +146,19 @@ try {
   assert.equal(await page.getByText('Обновлённый отчёт').count(),1);
   pass('Combined status and search filtering');
   await page.getByLabel('Поиск по названию').fill('');
+  await page.getByRole('button',{name:/Новая заявка/}).click();
+  const offlineDialog=page.getByRole('dialog',{name:'Новая заявка'});
+  await offlineDialog.getByPlaceholder('Например: автоматизация отчётов').fill('QA — offline retry');
+  await offlineDialog.getByPlaceholder('Опишите задачу, ожидаемый результат и текущие сложности').fill('Temporary network failure should not destroy form data');
+  await context.setOffline(true);
+  await offlineDialog.getByRole('button',{name:'Создать заявку',exact:true}).click();
+  await offlineDialog.getByRole('alert').waitFor({timeout:12000});
+  assert.match(await offlineDialog.getByRole('alert').innerText(),/Проверьте интернет и попробуйте ещё раз/);
+  assert.equal(await offlineDialog.locator('textarea').inputValue(),'Temporary network failure should not destroy form data');
+  assert.equal(allRows.length,1,'offline save must not insert a record');
+  await context.setOffline(false);
+  await offlineDialog.getByRole('button',{name:'Отмена'}).click();
+  pass('Offline save shows human-readable error and preserves form without a duplicate');
   await page.screenshot({path:join(screenshots,'dashboard-desktop.png'),fullPage:true});
   const mobile=await browser.newContext({viewport:{width:360,height:740},isMobile:true,deviceScaleFactor:1,locale:'ru-RU'});
   // Transfer test session only for screenshot; backend still scopes by fake JWT.
