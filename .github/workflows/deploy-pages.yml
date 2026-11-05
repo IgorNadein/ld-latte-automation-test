@@ -1,0 +1,44 @@
+name: Deploy Supabase app to GitHub Pages
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: ld-latte-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    env:
+      VITE_SUPABASE_URL: ${{ vars.LD_LATTE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ secrets.LD_LATTE_SUPABASE_ANON_KEY }}
+      DEPLOY_BASE_PATH: /ld-latte-automation-test/
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - name: Ensure real backend is configured
+        run: |
+          test -n "$VITE_SUPABASE_URL" || { echo 'Set repository variable LD_LATTE_SUPABASE_URL'; exit 1; }
+          test -n "$VITE_SUPABASE_ANON_KEY" || { echo 'Set repository secret LD_LATTE_SUPABASE_ANON_KEY'; exit 1; }
+      - name: Build frontend with real Supabase configuration
+        working-directory: app
+        run: npm ci && npm run build
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: app/dist
+      - id: deployment
+        uses: actions/deploy-pages@v4

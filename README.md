@@ -101,3 +101,16 @@ SQL data checks: имена вымышленные. Добавление, пер
 ## Проверка импорта в n8n
 
 Файл `.github/workflows/n8n-import.yml` содержит отдельный запускаемый вручную GitHub Actions job, который устанавливает n8n 2.46.6 и SQLite в изолированной среде, импортирует workflow и повторно экспортирует его для проверки. Это **проверка формата и импортируемости**, не демонстрация Telegram webhook с токеном.
+
+## Подготовленная публикация на GitHub Pages
+
+Workflow `.github/workflows/deploy-pages.yml` публикует **только настоящую рабочую сборку с подключённым Supabase**. Он запускается вручную, проверяет наличие настроек перед публикацией и не публикует экран настройки как «готовый сервис».
+
+1. Создайте Supabase project, примените `supabase/schema.sql`.
+2. В репозитории GitHub создайте **variable** `LD_LATTE_SUPABASE_URL` (например, `https://PROJECT.supabase.co`) и **secret** `LD_LATTE_SUPABASE_ANON_KEY` (только public/anon/publishable key, **не** `service_role` и не database password).
+3. В Supabase Auth → URL Configuration внесите адрес GitHub Pages и в allowed redirects.
+4. В GitHub → Settings → Pages включите deployment source «GitHub Actions».
+5. В Actions запустите workflow «Deploy Supabase app to GitHub Pages».
+6. После публикации проверьте изоляцию двух аккаунтов по `docs/TEST_PLAN.md`.
+
+Без действующего Supabase проект не считается полностью развёрнутым: UI-скриншоты с mock API не заменяют этот шаг.
