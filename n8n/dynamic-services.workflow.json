@@ -30,7 +30,7 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const u = $input.first().json;\nconst cb = u.callback_query;\nif (cb) {\n  return [{ json: {\n    kind: 'callback',\n    chatId: cb.message?.chat?.id,\n    callbackId: cb.id,\n    serviceId: /^service:\\d{1,18}$/.test(cb.data || '') ? Number(cb.data.slice(8)) : null\n  }}];\n}\nconst msg = u.message;\nreturn [{ json: {\n  kind: (msg?.text || '').trim().split(/\\s+/)[0].split('@')[0] === '/start' ? 'start' : 'help',\n  chatId: msg?.chat?.id,\n  callbackId: null,\n  serviceId: null\n}}];"
+        "jsCode": "const u = $input.first().json;\nconst cb = u.callback_query;\nif (cb) {\n  return [{ json: {\n    kind: 'callback',\n    chatId: cb.message?.chat?.id,\n    callbackId: cb.id,\n    serviceId: /^service:\\d{1,18}$/.test(cb.data || '') ? Number(cb.data.slice(8)) : null,\n    isMenuReturn: cb.data === 'menu'\n  }}];\n}\nconst msg = u.message;\nreturn [{ json: {\n  kind: (msg?.text || '').trim().split(/\\s+/)[0].split('@')[0] === '/start' ? 'start' : 'help',\n  chatId: msg?.chat?.id,\n  callbackId: null,\n  serviceId: null,\n  isMenuReturn: false\n}}];"
       }
     },
     {
@@ -75,7 +75,7 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const ctx = $('Normalize update').first().json;\nconst all = $input.all().map(x => x.json).filter(x => x && x.id != null);\nconst services = all.flatMap(x => Array.isArray(x) ? x : [x])\n  .map(x => ({ id: Number(x.id), name: String(x.name || ''), active: x.active === true }));\nconst active = services.filter(x => x.active);\nlet text = '';\nlet keyboard = null;\nif (ctx.kind === 'start') {\n  text = active.length ? 'Выберите услугу:' : 'Пока нет доступных услуг. Попробуйте позже.';\n  keyboard = active.length ? active.map(x => [{text:x.name, callback_data:'service:' + x.id}]) : null;\n} else if (ctx.kind === 'callback') {\n  const item = active.find(x => x.id === ctx.serviceId);\n  text = item ? ('Вы выбрали: ' + item.name) : 'Эта услуга больше недоступна. Отправьте /start для обновления меню.';\n} else {\n  text = 'Отправьте /start, чтобы увидеть список услуг.';\n}\nreturn [{ json: {kind:ctx.kind,chatId:ctx.chatId,callbackId:ctx.callbackId,text,keyboard} }];"
+        "jsCode": "const ctx = $('Normalize update').first().json;\nconst all = $input.all().map(x => x.json).filter(x => x && x.id != null);\nconst services = all.flatMap(x => Array.isArray(x) ? x : [x])\n  .map(x => ({ id: Number(x.id), name: String(x.name || ''), active: x.active === true }));\nconst active = services.filter(x => x.active);\nlet text = '';\nlet keyboard = null;\nif (ctx.kind === 'start' || (ctx.kind === 'callback' && ctx.isMenuReturn)) {\n  text = active.length\n    ? '🛍 Меню услуг\\n\\nВыберите услугу — бот подтвердит выбор.\\nСписок обновляется из базы данных.'\n    : 'Сейчас нет доступных услуг. Попробуйте позже.';\n  keyboard = active.length ? active.map(x => [{text:x.name, callback_data:'service:' + x.id}]) : null;\n} else if (ctx.kind === 'callback') {\n  const item = active.find(x => x.id === ctx.serviceId);\n  text = item\n    ? ('✅ Вы выбрали услугу: ' + item.name + '\\n\\nУслуга найдена по ID в базе данных. Можно вернуться к списку и выбрать другую.')\n    : '⚠️ Эта услуга больше недоступна. Меню могло измениться.';\n  keyboard = [[{text:'↩️ Вернуться к списку услуг', callback_data:'menu'}]];\n} else {\n  text = 'Отправьте /start, чтобы увидеть список услуг.';\n}\nreturn [{ json: {kind:ctx.kind,chatId:ctx.chatId,callbackId:ctx.callbackId,text,keyboard} }];"
       }
     },
     {
@@ -148,7 +148,7 @@
         "url": "={{ 'https://api.telegram.org/bot' + $env.TELEGRAM_BOT_TOKEN + '/answerCallbackQuery' }}",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ { callback_query_id: $('Compose reply').first().json.callbackId } }}",
+        "jsonBody": "={{ { callback_query_id: $('Compose reply').first().json.callbackId, text: 'Выбор обработан' } }}",
         "options": {
           "response": {
             "response": {

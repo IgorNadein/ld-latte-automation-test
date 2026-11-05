@@ -15,6 +15,9 @@ Prerequisites: n8n webhook reachable from Telegram, bot credentials, seeded Supa
 | Empty catalog | Disable all; resend /start | Clear no-services message; no empty keyboard |
 | Callback | Click each active button | Bot replies with current name for ID |
 | Stale callback | Disable service after rendering, then click | Bot explains service no longer available |
+| Selection feedback | Click active service | Explicitly confirms service name and shows **Return to services** button |
+| Return to menu | Click Return to services after selection | Fresh menu from database, not an old cached keyboard |
+| Back after all disabled | Disable all services, click Return | Clear no-services message without buttons |
 | Unknown callback | Send unknown id via mocked update | No crash; explanatory text |
 | Other message | Message without /start | Help text or ignored by design |
 

@@ -10,8 +10,8 @@ const base = Array.from({ length: 9 }, (_, i) => ({
   id: i + 1, name: 'Услуга ' + (i + 1), active: true,
 }));
 
-function execute(kind, services, serviceId = null) {
-  const ctx = { kind, chatId: 1234, callbackId: kind === 'callback' ? 'cb-1' : null, serviceId };
+function execute(kind, services, serviceId = null, isMenuReturn = false) {
+  const ctx = { kind, chatId: 1234, callbackId: kind === 'callback' ? 'cb-1' : null, serviceId, isMenuReturn };
   const sandbox = {
     $input: { all: () => services.map(s => ({ json: s })) },
     $: name => {
@@ -39,4 +39,20 @@ assert.match(execute('callback', base, 3).text, /Услуга 3/);
 assert.match(execute('callback', base.map(s => ({...s,active:s.id!==3})), 3).text, /больше недоступна/);
 assert.match(execute('callback', base, 88).text, /больше недоступна/);
 console.log('PASS: callback by ID, stale and unknown ID');
-console.log('All 7 menu behavior checks passed.');
+
+const clicked = execute('callback', base, 3);
+assert.match(clicked.text, /выбрали услугу: Услуга 3/);
+assert.equal(clicked.keyboard[0][0].callback_data, 'menu');
+console.log('PASS: selecting a service sends its database name and return-menu button');
+for (const count of [2,5,9]) {
+  const values = base.map((s,i) => ({...s,active:i<count}));
+  const back = execute('callback', values, null, true);
+  assert.equal(back.keyboard.length, count);
+  assert.equal(back.keyboard[0][0].text, 'Услуга 1');
+  console.log('PASS: return to dynamic menu with '+count+' active services');
+}
+const backEmpty = execute('callback', noActive, null, true);
+assert.equal(backEmpty.keyboard, null);
+assert.match(backEmpty.text,/нет доступных услуг/);
+console.log('PASS: return to empty catalog');
+console.log('All 11 menu behavior groups passed.');
