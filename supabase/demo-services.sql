@@ -1,0 +1,13 @@
+-- Run each case in Supabase SQL Editor, then send /start in Telegram.
+-- Case A: 2 active services
+update public.services set active = (id between 1 and 2);
+-- Case B: 5 active services
+-- update public.services set active = (id between 1 and 5);
+-- Case C: 9 active services
+-- update public.services set active = true;
+-- Case D: rename + add + disable, without editing the n8n workflow
+-- update public.services set name = 'Экспресс-консультация' where id = 1;
+-- insert into public.services(name,active) values ('Новая услуга',true);
+-- update public.services set active = false where id = 2;
+-- Case E: zero active services
+-- update public.services set active = false;

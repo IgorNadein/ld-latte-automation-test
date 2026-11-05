@@ -1,0 +1,237 @@
+{
+  "name": "LD LATTE - Dynamic Telegram Menu (Supabase)",
+  "nodes": [
+    {
+      "id": "telegram-trigger",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        140,
+        260
+      ],
+      "parameters": {
+        "updates": [
+          "message",
+          "callback_query"
+        ],
+        "additionalFields": {}
+      },
+      "webhookId": "4445d9c5-ae36-493e-aa77-075d3c949816"
+    },
+    {
+      "id": "normalize-update",
+      "name": "Normalize update",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        390,
+        260
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const u = $input.first().json;\nconst cb = u.callback_query;\nif (cb) {\n  return [{ json: {\n    kind: 'callback',\n    chatId: cb.message?.chat?.id,\n    callbackId: cb.id,\n    serviceId: /^service:\\d{1,18}$/.test(cb.data || '') ? Number(cb.data.slice(8)) : null\n  }}];\n}\nconst msg = u.message;\nreturn [{ json: {\n  kind: (msg?.text || '').trim().split(/\\s+/)[0].split('@')[0] === '/start' ? 'start' : 'help',\n  chatId: msg?.chat?.id,\n  callbackId: null,\n  serviceId: null\n}}];"
+      }
+    },
+    {
+      "id": "get-services-supabase-",
+      "name": "Get services (Supabase)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        650,
+        260
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.SUPABASE_URL + '/rest/v1/services?select=id,name,active&order=id.asc' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_ANON_KEY }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "compose-reply",
+      "name": "Compose reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        940,
+        260
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const ctx = $('Normalize update').first().json;\nconst all = $input.all().map(x => x.json).filter(x => x && x.id != null);\nconst services = all.flatMap(x => Array.isArray(x) ? x : [x])\n  .map(x => ({ id: Number(x.id), name: String(x.name || ''), active: x.active === true }));\nconst active = services.filter(x => x.active);\nlet text = '';\nlet keyboard = null;\nif (ctx.kind === 'start') {\n  text = active.length ? 'Выберите услугу:' : 'Пока нет доступных услуг. Попробуйте позже.';\n  keyboard = active.length ? active.map(x => [{text:x.name, callback_data:'service:' + x.id}]) : null;\n} else if (ctx.kind === 'callback') {\n  const item = active.find(x => x.id === ctx.serviceId);\n  text = item ? ('Вы выбрали: ' + item.name) : 'Эта услуга больше недоступна. Отправьте /start для обновления меню.';\n} else {\n  text = 'Отправьте /start, чтобы увидеть список услуг.';\n}\nreturn [{ json: {kind:ctx.kind,chatId:ctx.chatId,callbackId:ctx.callbackId,text,keyboard} }];"
+      }
+    },
+    {
+      "id": "send-telegram-message",
+      "name": "Send Telegram message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1220,
+        260
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://api.telegram.org/bot' + $env.TELEGRAM_BOT_TOKEN + '/sendMessage' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {chat_id: $json.chatId, text: $json.text, reply_markup: $json.keyboard ? {inline_keyboard:$json.keyboard} : undefined} }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "was-callback-",
+      "name": "Was callback?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1500,
+        260
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "is-callback",
+              "leftValue": "={{ $('Compose reply').first().json.kind }}",
+              "rightValue": "callback",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "acknowledge-callback",
+      "name": "Acknowledge callback",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1740,
+        195
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://api.telegram.org/bot' + $env.TELEGRAM_BOT_TOKEN + '/answerCallbackQuery' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { callback_query_id: $('Compose reply').first().json.callbackId } }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Normalize update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize update": {
+      "main": [
+        [
+          {
+            "node": "Get services (Supabase)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get services (Supabase)": {
+      "main": [
+        [
+          {
+            "node": "Compose reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compose reply": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Telegram message": {
+      "main": [
+        [
+          {
+            "node": "Was callback?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Was callback?": {
+      "main": [
+        [
+          {
+            "node": "Acknowledge callback",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false,
+  "pinData": {},
+  "tags": []
+}
