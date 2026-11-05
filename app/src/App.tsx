@@ -122,10 +122,11 @@ function App() {
         status: editingId ? draft.status : 'Новая',
       };
       const op = editingId
-        ? supabase.from('automation_requests').update(payload).eq('id', editingId)
-        : supabase.from('automation_requests').insert(payload);
-      const { error: e } = await op;
+        ? supabase.from('automation_requests').update(payload).eq('id', editingId).select('id').maybeSingle()
+        : supabase.from('automation_requests').insert(payload).select('id').single();
+      const { data, error: e } = await op;
       if (e) throw e;
+      if (!data) throw new Error('Заявка не найдена или доступ запрещён.');
       setNotice(editingId ? 'Изменения сохранены.' : 'Заявка создана.');
       setEditorOpen(false); setEditingId(null); setDraft(freshForm());
       await refresh();
