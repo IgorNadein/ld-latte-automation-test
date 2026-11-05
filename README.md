@@ -7,7 +7,7 @@
 - **[Интеграционный отчёт Instagram — PDF](docs/LD_LATTE_Instagram_Integration_Plan.pdf)** — схема, OAuth, метрики, диагностика.
 - **[Технический паспорт живого развёртывания](docs/LIVE_DEPLOYMENT.md)** — архитектура, безопасность, результаты проверок, ограничения.
 
-**Важно:** постоянно доступный Telegram webhook сейчас реализован Supabase Edge Function, а экспортируемый n8n workflow — отдельная реализация задачи 1. n8n 2.46.6 успешно импортировал его в CI. Это не скрывается и подробно объяснено в техническом паспорте.
+**Живой бот обрабатывается n8n 2.46.6:** Telegram Trigger принимает реальные Telegram webhook updates на `n8n-ldlatte.aishka.su`. Для ответов используются штатные Telegram-узлы с зашифрованными Credentials, без встраивания токена в URL HTTP-запроса. Проверка регистрации webhook и синтетических обновлений описана в [техническом паспорте](docs/LIVE_DEPLOYMENT.md).
 
 
 Тестовое задание на позицию «Технический специалист по автоматизации бизнес-процессов» (5 ноября 2026). Все данные — демонстрационные.
@@ -48,10 +48,10 @@
 
 1. Создайте отдельного **тестового** Telegram-бота через BotFather; не используйте рабочие ключи.
 2. Используйте n8n с публичным HTTPS webhook URL, корректной базовой конфигурацией домена.
-3. Настройте переменные окружения n8n: `TELEGRAM_BOT_TOKEN`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`. Экспорт не содержит значений этих переменных.
-4. В тех инсталляциях n8n, где чтение переменных окружения внутри expressions запрещено, разрешите его только для тестовой инсталляции (`N8N_BLOCK_ENV_ACCESS_IN_NODE=false`) или замените ссылки на `$env.*` на защищённые Credentials (не экспортируя секреты). В production предпочтительнее credentials.
+3. Настройте переменные окружения n8n: `SUPABASE_URL` и `SUPABASE_ANON_KEY` (публичный ключ, **не** `service_role`). Telegram-токен задаётся **только** в зашифрованных Telegram Credentials внутри n8n, а не в URL узла или файле workflow.
+4. Для приведённого workflow разрешите чтение `$env.SUPABASE_URL` и `$env.SUPABASE_ANON_KEY` в выражениях (при необходимости `N8N_BLOCK_ENV_ACCESS_IN_NODE=false`) **только для тестовой инсталляции**. В production рекомендуется перенести конфигурацию доступа в n8n Credentials и ограничить доступ к редактору. Сам Telegram-токен уже хранится только в Telegram Credentials.
 5. Import from File: `n8n/dynamic-services.workflow.json`.
-6. Выберите Telegram Trigger → credentials → bot token. Telegram может поддерживать только один активный webhook/trigger на бота.
+6. Назначьте одну и ту же Telegram Credential узлам **Telegram Trigger**, **Send Telegram menu**, **Acknowledge callback** и **Edit Telegram menu**. Telegram поддерживает лишь один активный webhook на бота; тестовый URL n8n заменяет production URL, поэтому для параллельной проверки нужен отдельный бот.
 7. Активируйте workflow. Проверяйте `/start`, нажатия кнопок и изменения таблицы. SQL-кейсы для 2/5/9 услуг: `supabase/demo-services.sql`.
 8. **Важно:** токен Telegram участвует в URL HTTP Request. Не выкладывайте n8n execution history, скриншоты с resolved URL или логи. Для демонстрации создайте выделенного тестового бота и затем перевыпустите токен при необходимости.
 
@@ -78,7 +78,7 @@ SQL data checks: имена вымышленные. Добавление, пер
 
 ## Ограничения на момент первичной сборки
 
-Рабочий Supabase-проект и webhook Telegram настроены, однако **все секреты намеренно исключены из исходников**. Веб-приложение прошло реальные Auth/RLS и браузерные проверки. Для независимого повторного развёртывания потребуются свои проект и ключи. Сам n8n workflow импортирован в настоящий n8n, но постоянный Telegram webhook сейчас обрабатывает Edge gateway (см. LIVE_DEPLOYMENT.md).
+Рабочий Supabase-проект и webhook Telegram на n8n настроены; **все секреты исключены из исходников**. Веб-приложение прошло реальные Auth/RLS и браузерные проверки. Для независимого развёртывания потребуются собственные Supabase-проект, Telegram Credential и публичный HTTPS-адрес n8n. Тестовый n8n запущен на Android/Termux; для промышленной эксплуатации нужен самостоятельный сервер с перезапуском, резервными копиями, мониторингом и обновлениями (см. LIVE_DEPLOYMENT.md).
 
 ## Скриншоты интерфейса (mock API)
 
@@ -98,12 +98,13 @@ SQL data checks: имена вымышленные. Добавление, пер
 
 ### Автоматизированные проверки
 
-- `node tests/test_menu.mjs`: 12 групп проверок логики workflow (2/5/9 услуг, переименование, пустое меню, callbacks).
+- `node tests/test_menu.mjs`: 14 групп проверок логики workflow (2/5/9 услуг, переименование, пустое меню, callbacks).
+- `node tests/test_telegram_transport.mjs`: маршрут webhook → native Telegram-узлы, выражения клавиатуры 2/5/9 и проверка отсутствия Telegram-токена в workflow.
 - `python3 tests/test_schema_contract.py`: 8 статических проверок наличия и правильной структуры RLS-политик.
 - `VITE_SUPABASE_URL=http://127.0.0.1:54321 VITE_SUPABASE_ANON_KEY=mock_public_key npm run build` (в `app/`), затем `node tests/test_web_ui.mjs` (из корня): 11 сценариев в headless Chromium с mock Supabase API, включая double click и адаптивность 360px. Требуется установленный Chromium. При необходимости задайте `CHROMIUM_EXECUTABLE_PATH=/path/to/chromium`.
 - `.github/workflows/ci.yml`: эти проверки запускаются автоматически в GitHub Actions.
 
-**Проверки, которые mock не заменяет:** настоящая авторизация Supabase с подтверждением email, реальная PostgreSQL RLS при запросах с двумя JWT, живой Telegram webhook/n8n, и фактическая доступность боевого HTTPS URL.
+**Проверки, которые mock не заменяет:** настоящая авторизация Supabase с подтверждением email, реальная PostgreSQL RLS при запросах с двумя JWT, реальный Telegram-клиент, и фактическая доступность HTTPS URL. Live RLS и доступность сайта проверены; реальный входящий webhook n8n и путь до Telegram-узла проверены синтетическим Telegram update. Нажатие кнопок живым пользователем требует отдельной ручной проверки.
 
 ## Готовый отчёт по Instagram (для просмотра без GitHub Markdown)
 

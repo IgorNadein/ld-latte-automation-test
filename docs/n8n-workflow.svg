@@ -1,50 +1,40 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 408" role="img" aria-label="n8n workflow diagram LD LATTE">
-<defs><marker id="arr" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7Z" fill="#9C756D"/></marker></defs>
-<rect width="1240" height="408" rx="16" fill="#F8F6F3"/>
-<text x="29" y="39" font-family="Arial,sans-serif" fill="#4E3937" font-weight="bold" font-size="21">LD LATTE   /   N8N AUTOMATION FLOW</text>
-<text x="29" y="65" font-family="Arial,sans-serif" fill="#978A83" font-size="13">Every Telegram event reads the service catalog again. No hardcoded buttons or secrets.</text>
-<g font-family="Arial,sans-serif">
-<g fill="#FFFFFF" stroke="#D7CFC7" stroke-width="1.3">
-<rect x="28" y="117" width="217" height="95" rx="10"/>
-<rect x="275" y="117" width="217" height="95" rx="10"/>
-<rect x="522" y="117" width="217" height="95" rx="10"/>
-<rect x="769" y="117" width="217" height="95" rx="10"/>
-<rect x="769" y="280" width="217" height="95" rx="10"/>
-<rect x="522" y="280" width="217" height="95" rx="10"/>
-<rect x="275" y="280" width="217" height="95" rx="10"/>
-</g>
-<g fill="#4C3834" font-size="15" font-weight="bold">
-<text x="45" y="155">01  Telegram Trigger</text>
-<text x="292" y="155">02  Normalize update</text>
-<text x="539" y="155">03  Get services</text>
-<text x="786" y="155">04  Compose reply</text>
-<text x="786" y="318">05  Send message</text>
-<text x="539" y="318">06  Is callback?</text>
-<text x="292" y="318">07  Ack callback</text>
-</g>
-<g fill="#92827C" font-size="12">
-<text x="45" y="183">/start or callback_query</text>
-<text x="292" y="183">chat_id, callback_data</text>
-<text x="539" y="183">Supabase REST → services</text>
-<text x="786" y="183">active only, ID-based</text>
-<text x="786" y="346">Telegram Bot API</text>
-<text x="539" y="346">Only for callback_query</text>
-<text x="292" y="346">answerCallbackQuery API</text>
-</g>
-<g fill="none" stroke="#9C756D" stroke-width="2.1" marker-end="url(#arr)">
-<path d="M245 164H270"/><path d="M492 164H517"/><path d="M739 164H764"/>
-<path d="M875 212V274"/><path d="M769 327H744"/><path d="M522 327H497"/>
-</g>
-<rect x="1005" y="114" width="207" height="258" rx="10" fill="#EFE7E2"/>
-<g fill="#795C52" font-family="Arial,sans-serif">
-<text x="1022" y="145" font-size="14" font-weight="bold">Data-driven behavior</text>
-<text x="1022" y="172" font-size="12">2 / 5 / 9 active services</text>
-<text x="1022" y="197" font-size="12">Rename updates menu</text>
-<text x="1022" y="222" font-size="12">Disable hides service</text>
-<text x="1022" y="247" font-size="12">Empty list is handled</text>
-<text x="1022" y="272" font-size="12">Stale callback is safe</text>
-<text x="1022" y="297" font-size="12">Credentials external</text>
-<text x="1022" y="343" font-size="11">Import verified in n8n 2.46.6</text>
-</g>
-</g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1340 505" role="img" aria-label="LD LATTE n8n Telegram workflow: Supabase catalog and native Telegram nodes">
+<defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0L9 4.5L0 9Z" fill="#A68677"/></marker></defs>
+<rect width="1340" height="505" rx="18" fill="#F8F6F3"/>
+<text x="40" y="50" fill="#533A33" font-family="Arial,sans-serif" font-size="24" font-weight="bold">LD LATTE   /   N8N LIVE TELEGRAM FLOW</text>
+<text x="40" y="80" fill="#87766E" font-family="Arial,sans-serif" font-size="14">Read fresh data on every update. All Telegram API operations use encrypted native credentials.</text>
+<rect x="40" y="128" width="230" height="92" rx="10" fill="white" stroke="#CFC5BD" stroke-width="1.5"/>
+<text x="55" y="163" fill="#44342F" font-size="16" font-weight="bold" font-family="Arial,sans-serif">01 Telegram Trigger</text>
+<text x="55" y="190" fill="#85736A" font-size="12" font-family="Arial,sans-serif">Webhook /start и callback</text>
+<rect x="298" y="128" width="230" height="92" rx="10" fill="white" stroke="#CFC5BD" stroke-width="1.5"/>
+<text x="313" y="163" fill="#44342F" font-size="16" font-weight="bold" font-family="Arial,sans-serif">02 Normalize update</text>
+<text x="313" y="190" fill="#85736A" font-size="12" font-family="Arial,sans-serif">chat ID, service ID</text>
+<rect x="556" y="128" width="230" height="92" rx="10" fill="white" stroke="#CFC5BD" stroke-width="1.5"/>
+<text x="571" y="163" fill="#44342F" font-size="16" font-weight="bold" font-family="Arial,sans-serif">03 Get services</text>
+<text x="571" y="190" fill="#85736A" font-size="12" font-family="Arial,sans-serif">Supabase REST / public RLS</text>
+<rect x="814" y="128" width="230" height="92" rx="10" fill="white" stroke="#CFC5BD" stroke-width="1.5"/>
+<text x="829" y="163" fill="#44342F" font-size="16" font-weight="bold" font-family="Arial,sans-serif">04 Compose reply</text>
+<text x="829" y="190" fill="#85736A" font-size="12" font-family="Arial,sans-serif">Актуальный список и кнопки</text>
+<rect x="1072" y="128" width="230" height="92" rx="10" fill="white" stroke="#CFC5BD" stroke-width="1.5"/>
+<text x="1087" y="163" fill="#44342F" font-size="16" font-weight="bold" font-family="Arial,sans-serif">05 Was callback?</text>
+<text x="1087" y="190" fill="#85736A" font-size="12" font-family="Arial,sans-serif">Условие маршрутизации</text>
+<rect x="900" y="340" width="230" height="92" rx="10" fill="white" stroke="#CFC5BD" stroke-width="1.5"/>
+<text x="915" y="375" fill="#44342F" font-size="16" font-weight="bold" font-family="Arial,sans-serif">06 Send Telegram menu</text>
+<text x="915" y="402" fill="#85736A" font-size="12" font-family="Arial,sans-serif">Новая команда /start</text>
+<rect x="624" y="340" width="230" height="92" rx="10" fill="white" stroke="#CFC5BD" stroke-width="1.5"/>
+<text x="639" y="375" fill="#44342F" font-size="16" font-weight="bold" font-family="Arial,sans-serif">07 Acknowledge</text>
+<text x="639" y="402" fill="#85736A" font-size="12" font-family="Arial,sans-serif">Callback Query по ID</text>
+<rect x="350" y="340" width="230" height="92" rx="10" fill="white" stroke="#CFC5BD" stroke-width="1.5"/>
+<text x="365" y="375" fill="#44342F" font-size="16" font-weight="bold" font-family="Arial,sans-serif">08 Edit Telegram menu</text>
+<text x="365" y="402" fill="#85736A" font-size="12" font-family="Arial,sans-serif">Редактирование кнопок</text>
+<path d="M270,174H294" fill="none" stroke="#A68677" stroke-width="2.4" marker-end="url(#arrow)"/>
+<path d="M528,174H552" fill="none" stroke="#A68677" stroke-width="2.4" marker-end="url(#arrow)"/>
+<path d="M786,174H810" fill="none" stroke="#A68677" stroke-width="2.4" marker-end="url(#arrow)"/>
+<path d="M1044,174H1068" fill="none" stroke="#A68677" stroke-width="2.4" marker-end="url(#arrow)"/>
+<path d="M1186 220V287H1015V334" fill="none" stroke="#A68677" stroke-width="2.4" marker-end="url(#arrow)"/>
+<text x="1070" y="280" fill="#614B42" font-size="13" font-family="Arial,sans-serif">/start / other</text>
+<path d="M1180 220V308H735V334" fill="none" stroke="#A68677" stroke-width="2.4" marker-end="url(#arrow)"/>
+<text x="766" y="307" fill="#614B42" font-size="13" font-family="Arial,sans-serif">callback</text>
+<path d="M624 386H584" fill="none" stroke="#A68677" stroke-width="2.4" marker-end="url(#arrow)"/>
+<text x="40" y="482" fill="#86776F" font-family="Arial,sans-serif" font-size="13">Telegram Trigger • dynamic ID-based buttons • query acknowledgement • edit in place • no tokens in workflow export</text>
 </svg>

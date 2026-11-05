@@ -31,4 +31,4 @@ jobs:
       - name: Export stored workflows and inspect
         run: |
           /tmp/ld-latte-n8n-engine/node_modules/.bin/n8n export:workflow --all --output=/tmp/ld-latte-n8n-ci-export.json
-          node -e "const x=require('/tmp/ld-latte-n8n-ci-export.json');const ws=Array.isArray(x)?x:[x];if(!ws.some(w=>w.name.includes('LD LATTE')&&w.nodes.length===7))process.exit(1);console.log('IMPORTED_AND_EXPORTED',ws.map(w=>w.name))"
+          node -e "const x=require('/tmp/ld-latte-n8n-ci-export.json');const ws=Array.isArray(x)?x:[x];if(!ws.some(w=>w.name.includes('LD LATTE')&&w.nodes.length===8&&w.nodes.filter(n=>n.type==='n8n-nodes-base.telegram').length===3))process.exit(1);console.log('IMPORTED_AND_EXPORTED',ws.map(w=>w.name))"

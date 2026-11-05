@@ -7,8 +7,8 @@
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.2,
       "position": [
-        140,
-        260
+        160,
+        280
       ],
       "parameters": {
         "updates": [
@@ -25,8 +25,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        390,
-        260
+        380,
+        280
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
@@ -39,8 +39,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        650,
-        260
+        610,
+        280
       ],
       "parameters": {
         "method": "GET",
@@ -62,7 +62,11 @@
           }
         }
       },
-      "alwaysOutputData": true
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000,
+      "onError": "continueRegularOutput"
     },
     {
       "id": "compose-reply",
@@ -70,36 +74,12 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        940,
-        260
+        870,
+        280
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const ctx = $('Normalize update').first().json;\nconst all = $input.all().map(x => x.json).filter(x => x && x.id != null);\nconst services = all.flatMap(x => Array.isArray(x) ? x : [x])\n  .map(x => ({ id: Number(x.id), name: String(x.name || ''), active: x.active === true }));\nconst active = services.filter(x => x.active);\nlet text = '';\nlet keyboard = null;\nif (ctx.kind === 'start' || (ctx.kind === 'callback' && ctx.isMenuReturn)) {\n  text = active.length\n    ? '🛍 Меню услуг\\n\\nВыберите услугу — бот подтвердит выбор.\\nСписок обновляется из базы данных.'\n    : 'Сейчас нет доступных услуг. Попробуйте позже.';\n  keyboard = active.length ? active.map(x => [{text:x.name, callback_data:'service:' + x.id}]) : null;\n} else if (ctx.kind === 'callback') {\n  const item = active.find(x => x.id === ctx.serviceId);\n  text = item\n    ? ('✅ Вы выбрали услугу: ' + item.name + '\\n\\nУслуга найдена по ID в базе данных. Можно вернуться к списку и выбрать другую.')\n    : '⚠️ Эта услуга больше недоступна. Меню могло измениться.';\n  keyboard = [[{text:'↩️ Вернуться к списку услуг', callback_data:'menu'}]];\n} else {\n  text = 'Отправьте /start, чтобы увидеть список услуг.';\n}\nreturn [{ json: {kind:ctx.kind,chatId:ctx.chatId,callbackId:ctx.callbackId,messageId:ctx.messageId,text,keyboard} }];"
-      }
-    },
-    {
-      "id": "send-telegram-message",
-      "name": "Send or edit Telegram message",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1220,
-        260
-      ],
-      "parameters": {
-        "method": "POST",
-        "url": "={{ 'https://api.telegram.org/bot' + $env.TELEGRAM_BOT_TOKEN + ($json.messageId ? '/editMessageText' : '/sendMessage') }}",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ {chat_id:$json.chatId, ...($json.messageId ? {message_id:$json.messageId} : {}), text:$json.text, reply_markup: $json.keyboard ? {inline_keyboard:$json.keyboard} : undefined} }}",
-        "options": {
-          "response": {
-            "response": {
-              "responseFormat": "json"
-            }
-          }
-        }
+        "jsCode": "const ctx = $('Normalize update').first().json;\nconst all = $input.all().map(x => x.json).filter(x => x && x.id != null);\nconst upstreamError = $input.all().some(x => x.json?.error != null);\nconst services = all.flatMap(x => Array.isArray(x) ? x : [x])\n  .map(x => ({ id: Number(x.id), name: String(x.name || ''), active: x.active === true }));\nconst active = services.filter(x => x.active);\nconst escapeHtml = value => String(value).replace(/[&<>\"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":'&#39;'}[ch]));\nlet text = '';\nlet keyboard = null;\nif (upstreamError) {\n  text = 'Не удалось загрузить услуги. Попробуйте ещё раз через минуту.';\n  keyboard = ctx.kind === 'callback' ? [[{text:'↩️ Вернуться к списку услуг',callback_data:'menu'}]] : null;\n} else if (ctx.kind === 'start' || (ctx.kind === 'callback' && ctx.isMenuReturn)) {\n  text = active.length\n    ? '🛍 Меню услуг\\n\\nВыберите услугу — бот подтвердит выбор.\\nСписок обновляется из базы данных.'\n    : 'Сейчас нет доступных услуг. Попробуйте позже.';\n  keyboard = active.length ? active.map(x => [{text:x.name, callback_data:'service:' + x.id}]) : null;\n} else if (ctx.kind === 'callback') {\n  const item = active.find(x => x.id === ctx.serviceId);\n  text = item\n    ? ('✅ Вы выбрали услугу: ' + escapeHtml(item.name) + '\\n\\nУслуга найдена по ID в базе данных. Можно вернуться к списку и выбрать другую.')\n    : '⚠️ Эта услуга больше недоступна. Меню могло измениться.';\n  keyboard = [[{text:'↩️ Вернуться к списку услуг', callback_data:'menu'}]];\n} else {\n  text = 'Отправьте /start, чтобы увидеть список услуг.';\n}\nreturn [{ json: {kind:ctx.kind,chatId:ctx.chatId,callbackId:ctx.callbackId,messageId:ctx.messageId,text,keyboard} }];"
       }
     },
     {
@@ -108,8 +88,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1500,
-        260
+        1100,
+        280
       ],
       "parameters": {
         "conditions": {
@@ -137,24 +117,61 @@
     {
       "id": "acknowledge-callback",
       "name": "Acknowledge callback",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
       "position": [
-        1740,
-        195
+        1340,
+        140
       ],
       "parameters": {
-        "method": "POST",
-        "url": "={{ 'https://api.telegram.org/bot' + $env.TELEGRAM_BOT_TOKEN + '/answerCallbackQuery' }}",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ { callback_query_id: $('Compose reply').first().json.callbackId, text: 'Выбор обработан' } }}",
-        "options": {
-          "response": {
-            "response": {
-              "responseFormat": "json"
-            }
-          }
+        "resource": "callback",
+        "operation": "answerQuery",
+        "queryId": "={{ $json.callbackId }}",
+        "additionalFields": {}
+      }
+    },
+    {
+      "id": "edit-telegram-message",
+      "name": "Edit Telegram menu",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1580,
+        140
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "editMessageText",
+        "messageType": "message",
+        "chatId": "={{ $('Compose reply').first().json.chatId }}",
+        "messageId": "={{ $('Compose reply').first().json.messageId }}",
+        "text": "={{ $('Compose reply').first().json.text }}",
+        "replyMarkup": "={{ $('Compose reply').first().json.keyboard ? 'inlineKeyboard' : 'none' }}",
+        "inlineKeyboard": "={{ { rows: ($('Compose reply').first().json.keyboard || []).map(row => ({ row: { buttons: row.map(button => ({ text: button.text, additionalFields: { callback_data: button.callback_data } })) } })) } }}",
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      }
+    },
+    {
+      "id": "send-telegram-message",
+      "name": "Send Telegram menu",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1340,
+        400
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $json.chatId }}",
+        "text": "={{ $json.text }}",
+        "replyMarkup": "={{ $json.keyboard ? 'inlineKeyboard' : 'none' }}",
+        "inlineKeyboard": "={{ { rows: ($json.keyboard || []).map(row => ({ row: { buttons: row.map(button => ({ text: button.text, additionalFields: { callback_data: button.callback_data } })) } })) } }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
         }
       }
     }
@@ -197,7 +214,7 @@
       "main": [
         [
           {
-            "node": "Send or edit Telegram message",
+            "node": "Was callback?",
             "type": "main",
             "index": 0
           }
@@ -213,14 +230,20 @@
             "index": 0
           }
         ],
-        []
+        [
+          {
+            "node": "Send Telegram menu",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
-    "Send or edit Telegram message": {
+    "Acknowledge callback": {
       "main": [
         [
           {
-            "node": "Was callback?",
+            "node": "Edit Telegram menu",
             "type": "main",
             "index": 0
           }
