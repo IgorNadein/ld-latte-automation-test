@@ -82,10 +82,14 @@ function App() {
     try {
       const result = authMode === 'signin'
         ? await supabase.auth.signInWithPassword({ email: email.trim(), password })
-        : await supabase.auth.signUp({ email: email.trim(), password });
+        : await supabase.auth.signUp({
+            email: email.trim(),
+            password,
+            options: { emailRedirectTo: window.location.origin + import.meta.env.BASE_URL },
+          });
       if (result.error) throw result.error;
       if (authMode === 'signup' && !result.data.session) {
-        setNotice('Аккаунт создан. Проверьте почту и подтвердите регистрацию, затем войдите.');
+        setNotice('Аккаунт создан. Подтвердите email по ссылке из письма, затем вернитесь на эту страницу и войдите. Если письмо открыло localhost — подтверждение всё равно могло пройти; вернитесь сюда и попробуйте войти.');
       } else {
         setNotice(authMode === 'signup' ? 'Аккаунт создан.' : 'Вход выполнен.');
       }
