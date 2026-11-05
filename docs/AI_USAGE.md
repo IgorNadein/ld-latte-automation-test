@@ -29,3 +29,12 @@
 ## Известные ограничения
 
 Без личного Supabase project и Telegram BotFather token невозможно честно заявить end-to-end испытания. Веб-приложение в таком случае показывает экран настройки; это не рабочий тестовый backend. Клиентский in-flight guard предотвращает двойной клик в одном окне; distributed idempotency при сетевых повторах выходит за рамки ТЗ.
+
+## Фактически пройденные автоматизированные тесты (5 ноября 2026)
+
+1. React/TypeScript: `npm run build` — успешно.
+2. Telegram Code-узел: 7 тестов JavaScript в `tests/test_menu.mjs` — успешно (без живого Telegram).
+3. Web UI: 10 браузерных сценариев Playwright + локальный mock HTTP API — успешно.
+4. Статическая проверка SQL: 8 требований в `tests/test_schema_contract.py` — успешно.
+
+Скриншоты тестового UI находятся в `docs/screenshots/`. Они не подтверждают работу реальных Supabase Auth, RLS или n8n Telegram Trigger; для этих компонентов требуются подключённые сервисы и отдельные проверки.

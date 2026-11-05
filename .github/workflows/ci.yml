@@ -1,0 +1,44 @@
+name: Validate automation test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  checks:
+    name: Build, workflow tests and UI e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+        working-directory: app
+      - name: Type-check and build
+        run: npm run build
+        working-directory: app
+      - name: Unit-test dynamic Telegram menu
+        run: node tests/test_menu.mjs
+      - name: Static-check Supabase access policies
+        run: python3 tests/test_schema_contract.py
+      - name: Install browser for mocked API e2e
+        run: npx playwright-core install --with-deps chromium
+        working-directory: app
+      - name: Run browser e2e against a mocked Supabase HTTP API
+        run: |
+          VITE_SUPABASE_URL=http://127.0.0.1:54321 VITE_SUPABASE_ANON_KEY=mock_public_key npm run build
+          cd .. && node tests/test_web_ui.mjs
+        working-directory: app
+      - name: Upload screenshots as test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-browser-screenshots
+          path: docs/screenshots/*.png

@@ -66,3 +66,28 @@ SQL data checks: имена вымышленные. Добавление, пер
 ## Ограничения на момент первичной сборки
 
 Проект Supabase, bot token и н8n credentials не включены в исходники. Поэтому без соответствующих тестовых подключений нельзя заявлять успешные end-to-end проверки или доступность удалённого приложения. Инструкция позволяет выполнить их без использования корпоративных аккаунтов.
+
+## Скриншоты интерфейса (mock API)
+
+Следующие изображения сделаны автоматизированным браузерным тестом. Это **настоящие скриншоты React-интерфейса**, но сетевые запросы в тесте обрабатывает локальный mock API, не проект Supabase. Это не доказательство успешного RLS-тестирования реальной БД.
+
+**Десктоп:**
+
+![Automation Desk desktop](docs/screenshots/dashboard-desktop.png)
+
+**Мобильная версия (360 px):**
+
+![Automation Desk mobile](docs/screenshots/dashboard-mobile.png)
+
+**Авторизация:**
+
+![Automation Desk sign in](docs/screenshots/auth-desktop.png)
+
+### Автоматизированные проверки
+
+- `node tests/test_menu.mjs`: 7 проверок логики workflow (2/5/9 услуг, переименование, пустое меню, callbacks).
+- `python3 tests/test_schema_contract.py`: 8 статических проверок наличия и правильной структуры RLS-политик.
+- `VITE_SUPABASE_URL=http://127.0.0.1:54321 VITE_SUPABASE_ANON_KEY=mock_public_key npm run build` (в `app/`), затем `node tests/test_web_ui.mjs` (из корня): 10 сценариев в headless Chromium с mock Supabase API, включая double click и адаптивность 360px. Требуется установленный Chromium. При необходимости задайте `CHROMIUM_EXECUTABLE_PATH=/path/to/chromium`.
+- `.github/workflows/ci.yml`: эти проверки запускаются автоматически в GitHub Actions.
+
+**Проверки, которые mock не заменяет:** настоящая авторизация Supabase с подтверждением email, реальная PostgreSQL RLS при запросах с двумя JWT, живой Telegram webhook/n8n, и фактическая доступность боевого HTTPS URL.
