@@ -10,6 +10,7 @@
 - База Supabase: проект LD LATTE Automation Demo, регион Frankfurt.
 - Профессиональный план Instagram: [PDF](LD_LATTE_Instagram_Integration_Plan.pdf).
 - Исходник n8n: [workflow JSON](../n8n/dynamic-services.workflow.json).
+- Схема n8n: [визуальный workflow](n8n-workflow.svg).
 
 ## Как устроена живая демонстрация
 

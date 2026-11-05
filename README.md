@@ -43,6 +43,9 @@
 
 ## Telegram / n8n
 
+![Схема n8n workflow](docs/n8n-workflow.svg)
+
+
 1. Создайте отдельного **тестового** Telegram-бота через BotFather; не используйте рабочие ключи.
 2. Используйте n8n с публичным HTTPS webhook URL, корректной базовой конфигурацией домена.
 3. Настройте переменные окружения n8n: `TELEGRAM_BOT_TOKEN`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`. Экспорт не содержит значений этих переменных.

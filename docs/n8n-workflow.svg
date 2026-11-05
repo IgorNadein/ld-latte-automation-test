@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 408" role="img" aria-label="n8n workflow diagram LD LATTE">
+<defs><marker id="arr" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7Z" fill="#9C756D"/></marker></defs>
+<rect width="1240" height="408" rx="16" fill="#F8F6F3"/>
+<text x="29" y="39" font-family="Arial,sans-serif" fill="#4E3937" font-weight="bold" font-size="21">LD LATTE   /   N8N AUTOMATION FLOW</text>
+<text x="29" y="65" font-family="Arial,sans-serif" fill="#978A83" font-size="13">Every Telegram event reads the service catalog again. No hardcoded buttons or secrets.</text>
+<g font-family="Arial,sans-serif">
+<g fill="#FFFFFF" stroke="#D7CFC7" stroke-width="1.3">
+<rect x="28" y="117" width="217" height="95" rx="10"/>
+<rect x="275" y="117" width="217" height="95" rx="10"/>
+<rect x="522" y="117" width="217" height="95" rx="10"/>
+<rect x="769" y="117" width="217" height="95" rx="10"/>
+<rect x="769" y="280" width="217" height="95" rx="10"/>
+<rect x="522" y="280" width="217" height="95" rx="10"/>
+<rect x="275" y="280" width="217" height="95" rx="10"/>
+</g>
+<g fill="#4C3834" font-size="15" font-weight="bold">
+<text x="45" y="155">01  Telegram Trigger</text>
+<text x="292" y="155">02  Normalize update</text>
+<text x="539" y="155">03  Get services</text>
+<text x="786" y="155">04  Compose reply</text>
+<text x="786" y="318">05  Send message</text>
+<text x="539" y="318">06  Is callback?</text>
+<text x="292" y="318">07  Ack callback</text>
+</g>
+<g fill="#92827C" font-size="12">
+<text x="45" y="183">/start or callback_query</text>
+<text x="292" y="183">chat_id, callback_data</text>
+<text x="539" y="183">Supabase REST → services</text>
+<text x="786" y="183">active only, ID-based</text>
+<text x="786" y="346">Telegram Bot API</text>
+<text x="539" y="346">Only for callback_query</text>
+<text x="292" y="346">answerCallbackQuery API</text>
+</g>
+<g fill="none" stroke="#9C756D" stroke-width="2.1" marker-end="url(#arr)">
+<path d="M245 164H270"/><path d="M492 164H517"/><path d="M739 164H764"/>
+<path d="M875 212V274"/><path d="M769 327H744"/><path d="M522 327H497"/>
+</g>
+<rect x="1005" y="114" width="207" height="258" rx="10" fill="#EFE7E2"/>
+<g fill="#795C52" font-family="Arial,sans-serif">
+<text x="1022" y="145" font-size="14" font-weight="bold">Data-driven behavior</text>
+<text x="1022" y="172" font-size="12">2 / 5 / 9 active services</text>
+<text x="1022" y="197" font-size="12">Rename updates menu</text>
+<text x="1022" y="222" font-size="12">Disable hides service</text>
+<text x="1022" y="247" font-size="12">Empty list is handled</text>
+<text x="1022" y="272" font-size="12">Stale callback is safe</text>
+<text x="1022" y="297" font-size="12">Credentials external</text>
+<text x="1022" y="343" font-size="11">Import verified in n8n 2.46.6</text>
+</g>
+</g>
+</svg>
