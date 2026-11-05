@@ -31,7 +31,9 @@ jobs:
       - name: Export stored workflows and inspect
         run: |
           /tmp/ld-latte-n8n-engine/node_modules/.bin/n8n export:workflow --all --output=/tmp/ld-latte-n8n-ci-export.json
-          node -e "const x=require('/tmp/ld-latte-n8n-ci-export.json');const ws=Array.isArray(x)?x:[x];if(!ws.some(w=>w.name.includes('LD LATTE')&&w.nodes.length===8&&w.nodes.filter(n=>n.type==='n8n-nodes-base.telegram').length===3))process.exit(1);console.log('IMPORTED_AND_EXPORTED',ws.map(w=>w.name))"
+          node -e "const x=require('/tmp/ld-latte-n8n-ci-export.json');const ws=Array.isArray(x)?x:[x];if(!ws.some(w=>w.name.includes('LD LATTE')&&w.nodes.length===8&&w.nodes.filter(n=>n.type==='n8n-nodes-base.httpRequest').length===3&&w.nodes.filter(n=>n.type==='n8n-nodes-base.telegram').length===1))process.exit(1);console.log('IMPORTED_AND_EXPORTED',ws.map(w=>w.name))"
 
-      - name: Validate actual native Telegram reply_markup serializer
-        run: N8N_ENGINE_DIR=/tmp/ld-latte-n8n-engine node tests/test_telegram_n8n_native.mjs
+      - name: Validate dynamic Telegram API JSON requests
+        run: node tests/test_telegram_http_payload.mjs
+      - name: Execute real HTTP Request nodes with local Telegram API mock
+        run: python3 scripts/test_n8n_http_e2e.py

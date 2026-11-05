@@ -21,7 +21,7 @@ Prerequisites: n8n webhook reachable from Telegram, bot credentials, seeded Supa
 | Unknown callback | Send unknown id via mocked update | No crash; explanatory text |
 | Other message | Message without /start | Help text or ignored by design |
 
-**Статус 5 ноября 2026:** n8n 2.46.6 импортировал и опубликовал live workflow с Telegram Trigger и Telegram Credentials. На настоящем движке прошли сценарии 0/2/5/9 услуг, переименование и callback. Telegram API зарегистрировал webhook на n8n. Live executions #13 и #14 получили `success`: callback с редактированием сообщения и команда `/start` с двумя кнопками. Автотесты проверяют также HTML-экранирование и обработку временного сбоя Supabase. Изолированное E2E сравнение 2/5/9 с реальными Telegram UI-кликами пока следует проводить при финальной сдаче; реальные данные сотрудников не используются.
+**Статус 5 ноября 2026:** n8n 2.46.6 импортировал и опубликовал live workflow с Telegram Trigger и Telegram Credentials. На настоящем движке прошли сценарии 0/2/5/9 услуг, переименование и callback. Telegram API зарегистрировал webhook на n8n. Первые успешные выполнения #13/#14 отправляли сообщения без клавиатуры из-за ограничения fixedCollection штатного Telegram node; впоследствии найдено расхождение между тестами и реальным клиентом. Отправка меню и редактирование сообщений переведены на HTTP Request с динамическим JSON, требуется повторная проверка живого клиента. Автотесты проверяют также HTML-экранирование и обработку временного сбоя Supabase. Изолированное E2E сравнение 2/5/9 с реальными Telegram UI-кликами пока следует проводить при финальной сдаче; реальные данные сотрудников не используются.
 
 ## 2. Instagram plan
 

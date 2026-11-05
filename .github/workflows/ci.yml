@@ -26,8 +26,10 @@ jobs:
         working-directory: app
       - name: Unit-test dynamic Telegram menu
         run: node tests/test_menu.mjs
-      - name: Verify native Telegram transport and dynamic keyboards
+      - name: Verify Telegram transport and dynamic buttons
         run: node tests/test_telegram_transport.mjs
+      - name: Verify actual Telegram send/edit JSON payloads
+        run: node tests/test_telegram_http_payload.mjs
       - name: Static-check Supabase access policies
         run: python3 tests/test_schema_contract.py
       - name: Install browser for mocked API e2e
