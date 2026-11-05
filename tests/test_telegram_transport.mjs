@@ -18,7 +18,7 @@ const extract = (expression, context) => {
   return Function('$json', '$', 'return (' + expression.slice(4,-3) + ')')(context, () => ({first:()=>({json:context})}));
 };
 const render = (node, context) => {
-  const replyMarkup = extract(node.parameters.replyMarkup, context);
+  const replyMarkup = node.parameters.replyMarkup.startsWith('=') ? extract(node.parameters.replyMarkup, context) : node.parameters.replyMarkup;
   if (replyMarkup === 'none') return null;
   assert.equal(replyMarkup,'inlineKeyboard');
   const shape = extract(node.parameters.inlineKeyboard, context);
@@ -30,5 +30,5 @@ for (const count of [2,5,9]) {
   for(const name of ['Send Telegram menu','Edit Telegram menu']) assert.deepEqual(render(nodes.get(name), context), keyboard);
   console.log('PASS: native Telegram nodes build '+count+' dynamic buttons');
 }
-for(const name of ['Send Telegram menu','Edit Telegram menu']) assert.equal(render(nodes.get(name),{keyboard:null}), null);
-console.log('PASS: empty catalog sends message without keyboard; credentials stay out of public export');
+for(const name of ['Send Telegram menu','Edit Telegram menu']) assert.deepEqual(render(nodes.get(name),{keyboard:null}), []);
+console.log('PASS: empty catalog builds zero buttons; credentials stay out of public export');

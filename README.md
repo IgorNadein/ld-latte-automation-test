@@ -99,7 +99,7 @@ SQL data checks: имена вымышленные. Добавление, пер
 ### Автоматизированные проверки
 
 - `node tests/test_menu.mjs`: 14 групп проверок логики workflow (2/5/9 услуг, переименование, пустое меню, callbacks).
-- `node tests/test_telegram_transport.mjs`: маршрут webhook → native Telegram-узлы, выражения клавиатуры 2/5/9 и проверка отсутствия Telegram-токена в workflow.
+- `node tests/test_telegram_transport.mjs`: маршрут webhook → native Telegram-узлы, выражения клавиатуры 2/5/9 и проверка отсутствия Telegram-токена в workflow. Отдельный n8n-import workflow выполняет `test_telegram_n8n_native.mjs` на настоящем коде сериализации Telegram-узла n8n, чтобы не пропустить отправку текста без кнопок.
 - `python3 tests/test_schema_contract.py`: 8 статических проверок наличия и правильной структуры RLS-политик.
 - `VITE_SUPABASE_URL=http://127.0.0.1:54321 VITE_SUPABASE_ANON_KEY=mock_public_key npm run build` (в `app/`), затем `node tests/test_web_ui.mjs` (из корня): 11 сценариев в headless Chromium с mock Supabase API, включая double click и адаптивность 360px. Требуется установленный Chromium. При необходимости задайте `CHROMIUM_EXECUTABLE_PATH=/path/to/chromium`.
 - `.github/workflows/ci.yml`: эти проверки запускаются автоматически в GitHub Actions.

@@ -146,7 +146,7 @@
         "chatId": "={{ $('Compose reply').first().json.chatId }}",
         "messageId": "={{ $('Compose reply').first().json.messageId }}",
         "text": "={{ $('Compose reply').first().json.text }}",
-        "replyMarkup": "={{ $('Compose reply').first().json.keyboard ? 'inlineKeyboard' : 'none' }}",
+        "replyMarkup": "inlineKeyboard",
         "inlineKeyboard": "={{ { rows: ($('Compose reply').first().json.keyboard || []).map(row => ({ row: { buttons: row.map(button => ({ text: button.text, additionalFields: { callback_data: button.callback_data } })) } })) } }}",
         "additionalFields": {
           "parse_mode": "HTML"
@@ -167,7 +167,7 @@
         "operation": "sendMessage",
         "chatId": "={{ $json.chatId }}",
         "text": "={{ $json.text }}",
-        "replyMarkup": "={{ $json.keyboard ? 'inlineKeyboard' : 'none' }}",
+        "replyMarkup": "inlineKeyboard",
         "inlineKeyboard": "={{ { rows: ($json.keyboard || []).map(row => ({ row: { buttons: row.map(button => ({ text: button.text, additionalFields: { callback_data: button.callback_data } })) } })) } }}",
         "additionalFields": {
           "appendAttribution": false,
